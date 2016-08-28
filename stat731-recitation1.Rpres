@@ -1,0 +1,199 @@
+STAT-731 Recitation 1
+========================================================
+author: K. Tyler Wilcox
+date: August 29, 2016
+autosize: true
+
+Welcome
+========================================================
+
+Goals:
+- Install R and RStudio (highly recommended)
+  - cran.r-project.org
+  - www.rstudio.com
+- Install R Packages
+  - IPSUR
+  - prob
+  - distrEx
+  - distr
+- Why Use Computer Simulation?
+
+Tossing Coins
+========================================================
+
+- First, let's write a simple R function that flips a coin
+- We will set the number of coin flips with the `nflips` argument
+- We can even make the coin fair or unfair with the `weights` argument
+
+
+```{r}
+flip_coin = function(nflips = 1,
+                     weights = c(0.5, 0.5)) {
+
+  sequence = sample(x       = c("H", "T"),
+                    size    = nflips,
+                    replace = TRUE,
+                    prob    = weights)
+}
+```
+
+Tossing Coins: What Does a Fair Coin Look Like?
+========================================================
+
+- Let's flip a fair two-sided coin (Heads or Tails) once
+- We will use our `flip_coin` function
+- `set.seed()` ensures that we can rerun the same code and get the same result
+even though we are using a pseudo-random number generator
+
+```{r}
+set.seed(333)
+sequence = flip_coin(nflips = 1)
+print(sequence)
+```
+
+Tossing Coins: Two Tosses
+========================================================
+
+- Do we have a fair coin based on what we saw?
+- Let's flip a fair two-sided coin (Heads or Tails) twice
+
+```{r}
+sequence = flip_coin(nflips = 2)
+print(sequence)
+```
+
+- Is this a fair sequence?
+
+Tossing Coins: Three Tosses
+========================================================
+
+- What about 3 tosses?
+
+```{r}
+sequence = flip_coin(nflips = 3)
+print(sequence)
+```
+
+Tossing Coins: 10,000 Tosses
+========================================================
+
+- What does 3 tosses look like?
+
+```{r, echo = FALSE}
+library(pacman)
+p_load(ggplot2, scales, dplyr)
+
+ggsequence = sequence %>%
+  data.frame() %>%
+  tbl_df()
+names(ggsequence) = "Outcome"
+
+sequence2 = flip_coin(nflips = 10000) %>%
+  data.frame() %>%
+  tbl_df()
+names(sequence2) = "Outcome"
+
+ggplot(ggsequence) +
+  geom_bar(aes(x = Outcome, y = ..count.. / sum(..count..))) +
+  scale_y_continuous(name = "Relative Frequency", labels = percent,
+                     limits = c(0.0, 1.0)) +
+  ggtitle("Three Tosses") +
+  theme_minimal()
+```
+
+***
+
+- What about 10,000 tosses?
+
+```{r, echo = FALSE}
+ggplot(sequence2) +
+  geom_bar(aes(x = Outcome, y = ..count.. / sum(..count..))) +
+  scale_y_continuous(name = "Relative Frequency", labels = percent,
+                     limits = c(0.0, 1.0)) +
+  ggtitle("10,000 Tosses") +
+  theme_minimal()
+```
+
+Tossing Coins: Probability as Relative Frequency
+========================================================
+
+- Effectively, the probability of an event is defined by the relative frequency
+of the event as the number of independent trials approaches infinity
+
+- For our fair coin toss, the probability of "Heads" is:
+$$Pr\left[ H \right] = \lim_{n \to \infty} \frac{1}{n}\sum_{i = 1} ^ n I(H)$$
+
+- Let's use the function `sample()` to compute the probability of seeing "Heads"
+
+sample()
+========================================================
+
+- `sample()` is a function that draws a random sample from a sample space
+  - `x`: a vector containing the elements of the sample space
+      - `sample(x = c("H", "T"))`
+  - `size`: a non-negative integer specifying the sample size to draw
+      - `sample(x = c("H", "T"), size = 10)`
+  - `replace`: `TRUE` or `FALSE`; sample with or without replacement
+      - default is `replace = FALSE`
+      - `sample(x = c("H", "T"), size = 10, replace = TRUE)`
+  - `prob`: a vector of probabilities for each element of the sample space `x`
+      - default is `1 / length(x)`
+      - `sample(x = c("H", "T"), size = 10, replace = TRUE, prob = c(0.75, 0.25))`
+Tossing Coins: Probability of "Heads" by Simulation
+========================================================
+
+- Let $n$ be very large (approximately infinite)
+- `f` will count the number of times a "Heads" is obtained
+
+```{r}
+n = 100000
+nheads = 0
+for (i in 1:n) {
+  nheads = nheads + ifelse(
+    test = sample(x = c("H", "T"))[1] == "H",
+    yes  = 1,
+    no   = 0)
+}
+```
+
+- We obtained `r nheads` "Heads" out of `r n` tosses of a fair coin
+- Therefore, $Pr\left[H\right] = `r round(nheads / n, 4)`$
+- How close are we to the theoretical probability?
+
+Tossing Coins: A Rigged Coin
+========================================================
+
+- Let's scam some tourists with a rigged coin toss game:
+  - $Pr[H] = 0.75$
+  - $Pr[T] = 1 - Pr[H] = 0.25$
+- A crowd of 40 tourists approaches...
+
+```{r}
+scams = flip_coin(nflips = 40, weights = c(0.75, 0.25))
+table(scams)
+```
+
+- We probably don't have a fair coin when
+`r round(table(scams)[1] / length(scams) * 100, 2)`% of the flips landed on
+"Heads"
+
+Tossing Coins: Probability of Rigged "Heads" by Simulation
+========================================================
+
+- Let $n$ be very large (approximately infinite)
+- `f` will count the number of times a "Heads" is obtained
+
+```{r}
+n = 100000
+nheads = 0
+for (i in seq(1:n)) {
+  nheads = nheads + ifelse(
+    test = sample(x = c("H", "T"), prob = c(0.75, 0.25))[1] == "H",
+    yes  = 1,
+    no   = 0)
+}
+```
+
+- We obtained `r nheads` "Heads" out of `r n` tosses of a fair coin
+- Therefore, $Pr\left[H\right] = `r round(nheads / n, 4)`$
+- How close are we to the theoretical probability?
