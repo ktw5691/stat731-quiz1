@@ -3,6 +3,8 @@ STAT-731 Recitation 1
 author: K. Tyler Wilcox
 date: August 29, 2016
 autosize: true
+font-family: 'Lucida Console'
+
 
 Welcome
 ========================================================
@@ -92,7 +94,6 @@ print(sequence)
 
 Tossing Coins: 10,000 Tosses
 ========================================================
-
 - What does 3 tosses look like?
 
 ![plot of chunk unnamed-chunk-5](stat731-recitation1-figure/unnamed-chunk-5-1.png)
@@ -128,6 +129,7 @@ sample()
   - `prob`: a vector of probabilities for each element of the sample space `x`
       - default is `1 / length(x)`
       - `sample(x = c("H", "T"), size = 10, replace = TRUE, prob = c(0.75, 0.25))`
+
 Tossing Coins: Probability of "Heads" by Simulation
 ========================================================
 
@@ -195,3 +197,74 @@ for (i in seq(1:n)) {
 - We obtained 7.5165 &times; 10<sup>4</sup> "Heads" out of 10<sup>5</sup> tosses of a fair coin
 - Therefore, $Pr\left[H\right] = 0.7516$
 - How close are we to the theoretical probability?
+
+Rolling Dice
+========================================================
+
+- We spent a good amount of time simulating binomial events
+- Can we simulate probabilities for larger spaces?
+- Let's roll two 6-sided fair dice:
+$$\mathcal{S} = \{1, 2, 3, 4, 5, 6\} \times \{1, 2, 3, 4, 5, 6\}$$
+- What is the probability of rolling the same number on both dice?
+
+```r
+n = 10000
+outcome = 0
+for (i in seq(1:n)) {
+  outcome = outcome + ifelse(
+    test = sample(x = 1:6)[1] == sample(x = 1:6)[1],
+    yes = 1,
+    no = 0)
+}
+```
+
+- We empirically obtain 1640 out of 10<sup>4</sup> rolls
+- Our empirical estimate of $Pr[f_1 = f_2] = 0.164$
+- How does this compare to our theoretical expectation?
+
+Empirical Exploration of an Arbitrary Sample Space
+========================================================
+
+- Let $\mathcal{S} = \{-2, 0, 1, 3\}$
+- $Pr[X = -2] = Pr[X = 0] = Pr[X = 1] = Pr[X = 3] = 0.25$
+- What is the size (cardinality) of $\mathcal{S}$?
+- Let's compute $Pr[X = -2]$ empirically using relative frequencies
+
+
+```r
+n = 10000
+outcome = 0
+for (i in seq(1:n)) {
+  outcome = outcome + ifelse(
+    test = sample(x = c(-2, 0, 1, 3), size = 1, replace = TRUE) == -2,
+    yes = 1,
+    no = 0)
+}
+```
+
+- We observed 2579 events where $X = -2$ out of 10<sup>4</sup> samples
+- Our empirical estimate of $Pr[X = -2] = 0.2579$
+- How does this compare to our theoretical expectation?
+
+Empirical Exploration of an Arbitrary Sample Space
+========================================================
+
+- Let $\mathcal{S} = \{-2, 0, 1, 3\}$
+- $Pr[X = -2] = Pr[X = 0] = Pr[X = 1] = Pr[X = 3] = 0.25$
+- What is the probability that X is non-negative?
+
+
+```r
+n = 10000
+outcome = 0
+for (i in seq(1:n)) {
+  outcome = outcome + ifelse(
+    test = sample(x = c(-2, 0, 1, 3), size = 1, replace = TRUE) >= 0,
+    yes = 1,
+    no = 0)
+}
+```
+
+- We observed 7453 events where $X \ge 0$ out of 10<sup>4</sup> samples
+- Our empirical estimate of $Pr[X \ge 0] = 0.7453$
+- How does this compare to our theoretical expectation?

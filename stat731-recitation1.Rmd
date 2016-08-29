@@ -1,29 +1,43 @@
-STAT-731 Recitation 1
+---
+title: "STAT-731 Recitation 1"
+author: "K. Tyler Wilcox"
+date: "August 29, 2016"
+output:
+  beamer_presentation:
+    theme: "metropolis"
+    highlight: zenburn
+    toc: true
+    incremental: true
+---
+
+Preliminaries
 ========================================================
-author: K. Tyler Wilcox
-date: August 29, 2016
-autosize: true
-font-family: 'Lucida Console'
 
+```{r, include = FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
 
-Welcome
-========================================================
-
-Goals:
-- Install R and RStudio (highly recommended)
-  - cran.r-project.org
-  - www.rstudio.com
-- Install R Packages
-  - IPSUR
-  - prob
-  - distrEx
-  - distr
+- Install `R` and RStudio (highly recommended)
+    - cran.r-project.org
+    - www.rstudio.com
+- Install `R` Packages
+    - `prob`
 - Why Use Computer Simulation?
+
+Installing `R` Packages
+========================================================
+
+```{r}
+if (!require(prob)) {
+  install.packages("prob")
+  library(prob)
+}
+```
 
 Tossing Coins
 ========================================================
 
-- First, let's write a simple R function that flips a coin
+- First, let's write a simple `R` function that flips a coin
 - We will set the number of coin flips with the `nflips` argument
 - We can even make the coin fair or unfair with the `weights` argument
 
@@ -36,6 +50,7 @@ flip_coin = function(nflips = 1,
                     size    = nflips,
                     replace = TRUE,
                     prob    = weights)
+  return(sequence)
 }
 ```
 
@@ -130,27 +145,27 @@ sample()
 ========================================================
 
 - `sample()` is a function that draws a random sample from a sample space
-  - `x`: a vector containing the elements of the sample space
-      - `sample(x = c("H", "T"))`
-  - `size`: a non-negative integer specifying the sample size to draw
-      - `sample(x = c("H", "T"), size = 10)`
-  - `replace`: `TRUE` or `FALSE`; sample with or without replacement
-      - default is `replace = FALSE`
-      - `sample(x = c("H", "T"), size = 10, replace = TRUE)`
-  - `prob`: a vector of probabilities for each element of the sample space `x`
-      - default is `1 / length(x)`
-      - `sample(x = c("H", "T"), size = 10, replace = TRUE, prob = c(0.75, 0.25))`
+    - `x`: a vector containing the elements of the sample space
+        - `sample(x = c("H", "T"))`
+    - `size`: a non-negative integer specifying the sample size to draw
+        - `sample(x = c("H", "T"), size = 10)`
+    - `replace`: `TRUE` or `FALSE`; sample with or without replacement
+        - default is `replace = FALSE`
+        - `sample(x = c("H", "T"), size = 10, replace = TRUE)`
+    - `prob`: a vector of probabilities for each element of the sample space `x`
+        - default is `1 / length(x)`
+        - `sample(x = c("H", "T"), size = 10, replace = TRUE, prob = c(0.75, 0.25))`
 
 Tossing Coins: Probability of "Heads" by Simulation
 ========================================================
 
 - Let $n$ be very large (approximately infinite)
-- `f` will count the number of times a "Heads" is obtained
+- `nheads` will count the number of times a "Heads" is obtained
 
 ```{r}
 n = 100000
 nheads = 0
-for (i in 1:n) {
+for (i in seq(1:n)) {
   nheads = nheads + ifelse(
     test = sample(x = c("H", "T"))[1] == "H",
     yes  = 1,
@@ -158,20 +173,21 @@ for (i in 1:n) {
 }
 ```
 
-- We obtained `r nheads` "Heads" out of `r n` tosses of a fair coin
+***
+
+- We obtained $`r nheads`$ "Heads" out of $`r n`$ tosses of a fair coin
 - Therefore, $Pr\left[H\right] = `r round(nheads / n, 4)`$
 - How close are we to the theoretical probability?
 
 Tossing Coins: A Rigged Coin
 ========================================================
 
-- Let's scam some tourists with a rigged coin toss game:
-  - $Pr[H] = 0.75$
-  - $Pr[T] = 1 - Pr[H] = 0.25$
-- A crowd of 40 tourists approaches...
+- $Pr[H] = 0.75$
+- $Pr[T] = 1 - Pr[H] = 0.25$
 
 ```{r}
-scams = flip_coin(nflips = 40, weights = c(0.75, 0.25))
+scams = flip_coin(nflips = 40,
+                  weights = c(0.75, 0.25))
 table(scams)
 ```
 
@@ -190,13 +206,16 @@ n = 100000
 nheads = 0
 for (i in seq(1:n)) {
   nheads = nheads + ifelse(
-    test = sample(x = c("H", "T"), prob = c(0.75, 0.25))[1] == "H",
+    test = sample(x = c("H", "T"),
+                  prob = c(0.75, 0.25))[1] == "H",
     yes  = 1,
     no   = 0)
 }
 ```
 
-- We obtained `r nheads` "Heads" out of `r n` tosses of a fair coin
+***
+
+- We obtained $`r nheads`$ "Heads" out of $`r n`$ tosses of a fair coin
 - Therefore, $Pr\left[H\right] = `r round(nheads / n, 4)`$
 - How close are we to the theoretical probability?
 
@@ -205,9 +224,13 @@ Rolling Dice
 
 - We spent a good amount of time simulating binomial events
 - Can we simulate probabilities for larger spaces?
+
+***
+
 - Let's roll two 6-sided fair dice:
 $$\mathcal{S} = \{1, 2, 3, 4, 5, 6\} \times \{1, 2, 3, 4, 5, 6\}$$
 - What is the probability of rolling the same number on both dice?
+
 ```{r}
 n = 10000
 outcome = 0
@@ -219,7 +242,9 @@ for (i in seq(1:n)) {
 }
 ```
 
-- We empirically obtain `r outcome` out of `r n` rolls
+***
+
+- We empirically obtain $`r outcome`$ out of $`r n`$ rolls
 - Our empirical estimate of $Pr[f_1 = f_2] = `r round(outcome / n, 4)`$
 - How does this compare to our theoretical expectation?
 
@@ -242,7 +267,9 @@ for (i in seq(1:n)) {
 }
 ```
 
-- We observed `r outcome` events where $X = -2$ out of `r n` samples
+***
+
+- We observed $`r outcome`$ events where $X = -2$ out of $`r n`$ samples
 - Our empirical estimate of $Pr[X = -2] = `r round(outcome / n, 4)`$
 - How does this compare to our theoretical expectation?
 
@@ -254,16 +281,162 @@ Empirical Exploration of an Arbitrary Sample Space
 - What is the probability that X is non-negative?
 
 ```{r}
+set.seed(333)
 n = 10000
 outcome = 0
 for (i in seq(1:n)) {
   outcome = outcome + ifelse(
-    test = sample(x = c(-2, 0, 1, 3), size = 1, replace = TRUE) >= 0,
+    test = sample(x = c(-2, 0, 1, 3),
+                  size = 1, replace = TRUE) >= 0,
     yes = 1,
     no = 0)
 }
 ```
 
-- We observed `r outcome` events where $X \ge 0$ out of `r n` samples
+***
+
+- We observed $`r outcome`$ events where $X \ge 0$ out of $`r n`$ samples
 - Our empirical estimate of $Pr[X \ge 0] = `r round(outcome / n, 4)`$
 - How does this compare to our theoretical expectation?
+
+A Programming Optimization Aside
+========================================================
+
+- It is worth mentioning that `for()` loops are highly inefficient in `R`
+- Let's redo the last example and replace the `for()` loop with one vectorized
+line of code
+
+```{r}
+n = 10000
+set.seed(333)
+outcome2 = length(which(sample(x = c(-2, 0 , 1, 3),
+                  size = n, replace = TRUE) >= 0))
+all.equal(outcome, outcome2)
+```
+
+- In general, vectorization will be preferable when possible in `R`
+
+Combinatorics in `R`
+========================================================
+
+- Consider an alphabet:
+$$A = \{ a, b, c, d, e \}$$
+- Suppose that for this alphabet, only words of length 2, 3, 4, and 5 are valid
+- Further, suppose that letters can appear more than once per word
+- Finally, suppose that the order of letters is irrelevant (i.e., "ab" = "ba")
+
+Alphabet A: How Many Two Letter Words Are There?
+========================================================
+
+```{r, message = FALSE}
+library(prob)
+
+A = c('a', 'b', 'c', 'd', 'e')
+n2words = prob::nsamp(n = length(A), k = 2,
+                      replace = TRUE, ordered = FALSE)
+```
+
+- We have `r n2words` two-letter words
+
+Alphabet A: How Many Three Letter Words Are There?
+========================================================
+
+```{r}
+A = c('a', 'b', 'c', 'd', 'e')
+n3words = prob::nsamp(n = length(A), k = 3,
+                      replace = TRUE, ordered = FALSE)
+```
+
+- We have `r n3words` possible three-letter words
+
+Alphabet A: How Many Four Letter Words Are There?
+========================================================
+
+```{r}
+A = c('a', 'b', 'c', 'd', 'e')
+n4words = prob::nsamp(n = length(A), k = 4,
+                      replace = TRUE, ordered = FALSE)
+```
+
+- We have `r n4words` four-letter words
+
+Alphabet A: Two-Letter Words in the Language?
+========================================================
+
+```{r}
+dictionary = NULL
+w2 = urnsamples(x = A, size = 2,
+                replace = TRUE, ordered = FALSE)
+for (i in seq(1:nrow(w2))) {
+  newword = ''
+  for (j in seq(1:2)) {
+    newword = paste0(newword, as.character(w2[i, j]))
+  }
+  dictionary = c(dictionary, newword)
+}
+```
+
+```{r, echo = FALSE}
+cat(dictionary)
+```
+
+Alphabet A: Three-Letter Words in the Language?
+========================================================
+
+```{r}
+dictionary = NULL
+w2 = urnsamples(x = A, size = 3,
+                replace = TRUE, ordered = FALSE)
+for (i in seq(1:nrow(w2))) {
+  newword = ''
+  for (j in seq(1:3)) {
+    newword = paste0(newword, as.character(w2[i, j]))
+  }
+  dictionary = c(dictionary, newword)
+}
+```
+
+***
+
+```{r, echo = FALSE}
+cat(dictionary[1:10], "\n")
+cat(dictionary[11:20], "\n")
+cat(dictionary[21:30], "\n")
+cat(dictionary[31:35], "\n")
+```
+
+Alphabet A: Four-Letter Words in the Language?
+========================================================
+
+```{r}
+dictionary = NULL
+w2 = urnsamples(x = A, size = 4,
+                replace = TRUE, ordered = FALSE)
+for (i in seq(1:nrow(w2))) {
+  newword = ''
+  for (j in seq(1:4)) {
+    newword = paste0(newword, as.character(w2[i, j]))
+  }
+  dictionary = c(dictionary, newword)
+}
+```
+
+***
+
+```{r, echo = FALSE}
+cat(dictionary[1:10], "\n")
+cat(dictionary[11:20], "\n")
+cat(dictionary[21:30], "\n")
+cat(dictionary[31:40], "\n")
+cat(dictionary[41:50], "\n")
+cat(dictionary[51:60], "\n")
+cat(dictionary[61:70], "\n")
+```
+
+Wrapping Up
+========================================================
+
+- `R` and RStudio
+- Theoretical and empirical (simulation-based) probabilities
+- When to use a theoretical vs. empirical approach
+- Questions?
