@@ -4,10 +4,9 @@ author: "K. Tyler Wilcox"
 date: "August 29, 2016"
 output:
   beamer_presentation:
-    theme: "metropolis"
     highlight: zenburn
-    toc: true
     incremental: true
+    theme: "metropolis"
 ---
 
 Preliminaries
@@ -141,7 +140,7 @@ $$Pr\left[ H \right] = \lim_{n \to \infty} \frac{1}{n}\sum_{i = 1} ^ n I(H)$$
 
 - Let's use the function `sample()` to compute the probability of seeing "Heads"
 
-sample()
+`sample()`
 ========================================================
 
 - `sample()` is a function that draws a random sample from a sample space
