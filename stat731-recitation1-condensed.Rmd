@@ -174,8 +174,9 @@ for (i in seq(1:n)) {
 
 ***
 
-- We obtained $`r nheads`$ "Heads" out of $`r n`$ tosses of a fair coin
-- Therefore, $Pr\left[H\right] = `r round(nheads / n, 4)`$
+- We obtained $`r sprintf("%1.f", nheads)`$ "Heads" out of $`r sprintf("%1.f", n)`$
+tosses of a fair coin
+- Therefore, $Pr\left[H\right] = `r sprintf("%.4f", nheads / n)`$
 - How close are we to the theoretical probability?
 
 Tossing Coins: A Rigged Coin
@@ -191,7 +192,7 @@ table(scams)
 ```
 
 - We probably don't have a fair coin when
-`r round(table(scams)[1] / length(scams) * 100, 2)`% of the flips landed on
+`r sprintf("%.2f", (table(scams)[1] / length(scams) * 100))`% of the flips landed on
 "Heads"
 
 Tossing Coins: Probability of Rigged "Heads" by Simulation
@@ -214,8 +215,8 @@ for (i in seq(1:n)) {
 
 ***
 
-- We obtained $`r nheads`$ "Heads" out of $`r n`$ tosses of a fair coin
-- Therefore, $Pr\left[H\right] = `r round(nheads / n, 4)`$
+- We obtained $`r sprintf("%1.f", nheads)`$ "Heads" out of $`r sprintf("%1.f", n)`$ tosses of a fair coin
+- Therefore, $Pr\left[H\right] = `r sprintf("%.4f", nheads / n)`$
 - How close are we to the theoretical probability?
 
 Rolling Dice
@@ -243,8 +244,9 @@ for (i in seq(1:n)) {
 
 ***
 
-- We empirically obtain $`r outcome`$ out of $`r n`$ rolls
-- Our empirical estimate of $Pr[f_1 = f_2] = `r round(outcome / n, 4)`$
+- We empirically obtain $`r sprintf("%1.f", outcome)`$ out of
+$`r sprintf("%1.f", n)`$ rolls
+- Our empirical estimate of $Pr[f_1 = f_2] = `r sprintf("%.4f", outcome / n)`$
 - How does this compare to our theoretical expectation?
 
 Empirical Exploration of an Arbitrary Sample Space
@@ -268,8 +270,9 @@ for (i in seq(1:n)) {
 
 ***
 
-- We observed $`r outcome`$ events where $X = -2$ out of $`r n`$ samples
-- Our empirical estimate of $Pr[X = -2] = `r round(outcome / n, 4)`$
+- We observed $`r sprintf("%1.f", outcome)`$ events where $X = -2$ out of
+$`r sprintf("%1.f", n)`$ samples
+- Our empirical estimate of $Pr[X = -2] = `r sprintf("%.4f", outcome / n)`$
 - How does this compare to our theoretical expectation?
 
 Empirical Exploration of an Arbitrary Sample Space
@@ -294,8 +297,9 @@ for (i in seq(1:n)) {
 
 ***
 
-- We observed $`r outcome`$ events where $X \ge 0$ out of $`r n`$ samples
-- Our empirical estimate of $Pr[X \ge 0] = `r round(outcome / n, 4)`$
+- We observed $`r sprintf("%1.f", outcome)`$ events where $X \ge 0$ out of
+$`r sprintf("%1.f", n)`$ samples
+- Our empirical estimate of $Pr[X \ge 0] = `r sprintf("%.4f", outcome / n)`$
 - How does this compare to our theoretical expectation?
 
 A Programming Optimization Aside
@@ -335,7 +339,7 @@ n2words = prob::nsamp(n = length(A), k = 2,
                       replace = TRUE, ordered = FALSE)
 ```
 
-- We have `r n2words` two-letter words
+- We have `r sprintf("%1.f", n2words)` two-letter words
 
 Alphabet A: How Many Three Letter Words Are There?
 ========================================================
@@ -346,7 +350,7 @@ n3words = prob::nsamp(n = length(A), k = 3,
                       replace = TRUE, ordered = FALSE)
 ```
 
-- We have `r n3words` possible three-letter words
+- We have `r sprintf("%1.f", n3words)` possible three-letter words
 
 Alphabet A: How Many Four Letter Words Are There?
 ========================================================
@@ -357,7 +361,7 @@ n4words = prob::nsamp(n = length(A), k = 4,
                       replace = TRUE, ordered = FALSE)
 ```
 
-- We have `r n4words` four-letter words
+- We have `r sprintf("%1.f", n4words)` four-letter words
 
 Alphabet A: Two-Letter Words in the Language?
 ========================================================
