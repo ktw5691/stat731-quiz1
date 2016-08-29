@@ -1,0 +1,441 @@
+---
+title: "STAT-731 Recitation 1"
+author: "K. Tyler Wilcox"
+date: "August 29, 2016"
+output:
+  beamer_presentation:
+    highlight: zenburn
+    incremental: false
+    theme: "metropolis"
+---
+
+Preliminaries
+========================================================
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+- Install `R` and RStudio (highly recommended)
+    - cran.r-project.org
+    - www.rstudio.com
+- Install `R` Packages
+    - `prob`
+- Why Use Computer Simulation?
+
+Installing `R` Packages
+========================================================
+
+```{r}
+if (!require(prob)) {
+  install.packages("prob")
+  library(prob)
+}
+```
+
+Tossing Coins
+========================================================
+
+- First, let's write a simple `R` function that flips a coin
+- We will set the number of coin flips with the `nflips` argument
+- We can even make the coin fair or unfair with the `weights` argument
+
+
+```{r}
+flip_coin = function(nflips = 1,
+                     weights = c(0.5, 0.5)) {
+
+  sequence = sample(x       = c("H", "T"),
+                    size    = nflips,
+                    replace = TRUE,
+                    prob    = weights)
+  return(sequence)
+}
+```
+
+Tossing Coins: What Does a Fair Coin Look Like?
+========================================================
+
+- Let's flip a fair two-sided coin (Heads or Tails) once
+- We will use our `flip_coin` function
+- `set.seed()` ensures that we can rerun the same code and get the same result
+even though we are using a pseudo-random number generator
+
+```{r}
+set.seed(333)
+sequence = flip_coin(nflips = 1)
+print(sequence)
+```
+
+Tossing Coins: Two Tosses
+========================================================
+
+- Do we have a fair coin based on what we saw?
+- Let's flip a fair two-sided coin (Heads or Tails) twice
+
+```{r}
+sequence = flip_coin(nflips = 2)
+print(sequence)
+```
+
+- Is this a fair sequence?
+
+Tossing Coins: Three Tosses
+========================================================
+
+- What about 3 tosses?
+
+```{r}
+sequence = flip_coin(nflips = 3)
+print(sequence)
+```
+
+Tossing Coins: 10,000 Tosses
+========================================================
+- What does 3 tosses look like?
+
+```{r, echo = FALSE}
+library(pacman)
+p_load(ggplot2, scales, dplyr)
+
+ggsequence = sequence %>%
+  data.frame() %>%
+  tbl_df()
+names(ggsequence) = "Outcome"
+
+sequence2 = flip_coin(nflips = 10000) %>%
+  data.frame() %>%
+  tbl_df()
+names(sequence2) = "Outcome"
+
+ggplot(ggsequence) +
+  geom_bar(aes(x = Outcome, y = ..count.. / sum(..count..))) +
+  scale_y_continuous(name = "Relative Frequency", labels = percent,
+                     limits = c(0.0, 1.0)) +
+  ggtitle("Three Tosses") +
+  theme_minimal()
+```
+
+***
+
+- What about 10,000 tosses?
+
+```{r, echo = FALSE}
+ggplot(sequence2) +
+  geom_bar(aes(x = Outcome, y = ..count.. / sum(..count..))) +
+  scale_y_continuous(name = "Relative Frequency", labels = percent,
+                     limits = c(0.0, 1.0)) +
+  ggtitle("10,000 Tosses") +
+  theme_minimal()
+```
+
+Tossing Coins: Probability as Relative Frequency
+========================================================
+
+- Effectively, the probability of an event is defined by the relative frequency
+of the event as the number of independent trials approaches infinity
+
+- For our fair coin toss, the probability of "Heads" is:
+$$Pr\left[ H \right] = \lim_{n \to \infty} \frac{1}{n}\sum_{i = 1} ^ n I(H)$$
+
+- Let's use the function `sample()` to compute the probability of seeing "Heads"
+
+`sample()`
+========================================================
+
+- `sample()` is a function that draws a random sample from a sample space
+    - `x`: a vector containing the elements of the sample space
+        - `sample(x = c("H", "T"))`
+    - `size`: a non-negative integer specifying the sample size to draw
+        - `sample(x = c("H", "T"), size = 10)`
+    - `replace`: `TRUE` or `FALSE`; sample with or without replacement
+        - default is `replace = FALSE`
+        - `sample(x = c("H", "T"), size = 10, replace = TRUE)`
+    - `prob`: a vector of probabilities for each element of the sample space `x`
+        - default is `1 / length(x)`
+        - `sample(x = c("H", "T"), size = 10, replace = TRUE, prob = c(0.75, 0.25))`
+
+Tossing Coins: Probability of "Heads" by Simulation
+========================================================
+
+- Let $n$ be very large (approximately infinite)
+- `nheads` will count the number of times a "Heads" is obtained
+
+```{r}
+n = 100000
+nheads = 0
+for (i in seq(1:n)) {
+  nheads = nheads + ifelse(
+    test = sample(x = c("H", "T"))[1] == "H",
+    yes  = 1,
+    no   = 0)
+}
+```
+
+***
+
+- We obtained $`r nheads`$ "Heads" out of $`r n`$ tosses of a fair coin
+- Therefore, $Pr\left[H\right] = `r round(nheads / n, 4)`$
+- How close are we to the theoretical probability?
+
+Tossing Coins: A Rigged Coin
+========================================================
+
+- $Pr[H] = 0.75$
+- $Pr[T] = 1 - Pr[H] = 0.25$
+
+```{r}
+scams = flip_coin(nflips = 40,
+                  weights = c(0.75, 0.25))
+table(scams)
+```
+
+- We probably don't have a fair coin when
+`r round(table(scams)[1] / length(scams) * 100, 2)`% of the flips landed on
+"Heads"
+
+Tossing Coins: Probability of Rigged "Heads" by Simulation
+========================================================
+
+- Let $n$ be very large (approximately infinite)
+- `f` will count the number of times a "Heads" is obtained
+
+```{r}
+n = 100000
+nheads = 0
+for (i in seq(1:n)) {
+  nheads = nheads + ifelse(
+    test = sample(x = c("H", "T"),
+                  prob = c(0.75, 0.25))[1] == "H",
+    yes  = 1,
+    no   = 0)
+}
+```
+
+***
+
+- We obtained $`r nheads`$ "Heads" out of $`r n`$ tosses of a fair coin
+- Therefore, $Pr\left[H\right] = `r round(nheads / n, 4)`$
+- How close are we to the theoretical probability?
+
+Rolling Dice
+========================================================
+
+- We spent a good amount of time simulating binomial events
+- Can we simulate probabilities for larger spaces?
+
+***
+
+- Let's roll two 6-sided fair dice:
+$$\mathcal{S} = \{1, 2, 3, 4, 5, 6\} \times \{1, 2, 3, 4, 5, 6\}$$
+- What is the probability of rolling the same number on both dice?
+
+```{r}
+n = 10000
+outcome = 0
+for (i in seq(1:n)) {
+  outcome = outcome + ifelse(
+    test = sample(x = 1:6)[1] == sample(x = 1:6)[1],
+    yes = 1,
+    no = 0)
+}
+```
+
+***
+
+- We empirically obtain $`r outcome`$ out of $`r n`$ rolls
+- Our empirical estimate of $Pr[f_1 = f_2] = `r round(outcome / n, 4)`$
+- How does this compare to our theoretical expectation?
+
+Empirical Exploration of an Arbitrary Sample Space
+========================================================
+
+- Let $\mathcal{S} = \{-2, 0, 1, 3\}$
+- $Pr[X = -2] = Pr[X = 0] = Pr[X = 1] = Pr[X = 3] = 0.25$
+- What is the size (cardinality) of $\mathcal{S}$?
+- Let's compute $Pr[X = -2]$ empirically using relative frequencies
+
+```{r}
+n = 10000
+outcome = 0
+for (i in seq(1:n)) {
+  outcome = outcome + ifelse(
+    test = sample(x = c(-2, 0, 1, 3), size = 1, replace = TRUE) == -2,
+    yes = 1,
+    no = 0)
+}
+```
+
+***
+
+- We observed $`r outcome`$ events where $X = -2$ out of $`r n`$ samples
+- Our empirical estimate of $Pr[X = -2] = `r round(outcome / n, 4)`$
+- How does this compare to our theoretical expectation?
+
+Empirical Exploration of an Arbitrary Sample Space
+========================================================
+
+- Let $\mathcal{S} = \{-2, 0, 1, 3\}$
+- $Pr[X = -2] = Pr[X = 0] = Pr[X = 1] = Pr[X = 3] = 0.25$
+- What is the probability that X is non-negative?
+
+```{r}
+set.seed(333)
+n = 10000
+outcome = 0
+for (i in seq(1:n)) {
+  outcome = outcome + ifelse(
+    test = sample(x = c(-2, 0, 1, 3),
+                  size = 1, replace = TRUE) >= 0,
+    yes = 1,
+    no = 0)
+}
+```
+
+***
+
+- We observed $`r outcome`$ events where $X \ge 0$ out of $`r n`$ samples
+- Our empirical estimate of $Pr[X \ge 0] = `r round(outcome / n, 4)`$
+- How does this compare to our theoretical expectation?
+
+A Programming Optimization Aside
+========================================================
+
+- It is worth mentioning that `for()` loops are highly inefficient in `R`
+- Let's redo the last example and replace the `for()` loop with one vectorized
+line of code
+
+```{r}
+n = 10000
+set.seed(333)
+outcome2 = length(which(sample(x = c(-2, 0 , 1, 3),
+                  size = n, replace = TRUE) >= 0))
+all.equal(outcome, outcome2)
+```
+
+- In general, vectorization will be preferable when possible in `R`
+
+Combinatorics in `R`
+========================================================
+
+- Consider an alphabet:
+$$A = \{ a, b, c, d, e \}$$
+- Suppose that for this alphabet, only words of length 2, 3, 4, and 5 are valid
+- Further, suppose that letters can appear more than once per word
+- Finally, suppose that the order of letters is irrelevant (i.e., "ab" = "ba")
+
+Alphabet A: How Many Two Letter Words Are There?
+========================================================
+
+```{r, message = FALSE}
+library(prob)
+
+A = c('a', 'b', 'c', 'd', 'e')
+n2words = prob::nsamp(n = length(A), k = 2,
+                      replace = TRUE, ordered = FALSE)
+```
+
+- We have `r n2words` two-letter words
+
+Alphabet A: How Many Three Letter Words Are There?
+========================================================
+
+```{r}
+A = c('a', 'b', 'c', 'd', 'e')
+n3words = prob::nsamp(n = length(A), k = 3,
+                      replace = TRUE, ordered = FALSE)
+```
+
+- We have `r n3words` possible three-letter words
+
+Alphabet A: How Many Four Letter Words Are There?
+========================================================
+
+```{r}
+A = c('a', 'b', 'c', 'd', 'e')
+n4words = prob::nsamp(n = length(A), k = 4,
+                      replace = TRUE, ordered = FALSE)
+```
+
+- We have `r n4words` four-letter words
+
+Alphabet A: Two-Letter Words in the Language?
+========================================================
+
+```{r}
+dictionary = NULL
+w2 = urnsamples(x = A, size = 2,
+                replace = TRUE, ordered = FALSE)
+for (i in seq(1:nrow(w2))) {
+  newword = ''
+  for (j in seq(1:2)) {
+    newword = paste0(newword, as.character(w2[i, j]))
+  }
+  dictionary = c(dictionary, newword)
+}
+```
+
+```{r, echo = FALSE}
+cat(dictionary)
+```
+
+Alphabet A: Three-Letter Words in the Language?
+========================================================
+
+```{r}
+dictionary = NULL
+w2 = urnsamples(x = A, size = 3,
+                replace = TRUE, ordered = FALSE)
+for (i in seq(1:nrow(w2))) {
+  newword = ''
+  for (j in seq(1:3)) {
+    newword = paste0(newword, as.character(w2[i, j]))
+  }
+  dictionary = c(dictionary, newword)
+}
+```
+
+***
+
+```{r, echo = FALSE}
+cat(dictionary[1:10], "\n")
+cat(dictionary[11:20], "\n")
+cat(dictionary[21:30], "\n")
+cat(dictionary[31:35], "\n")
+```
+
+Alphabet A: Four-Letter Words in the Language?
+========================================================
+
+```{r}
+dictionary = NULL
+w2 = urnsamples(x = A, size = 4,
+                replace = TRUE, ordered = FALSE)
+for (i in seq(1:nrow(w2))) {
+  newword = ''
+  for (j in seq(1:4)) {
+    newword = paste0(newword, as.character(w2[i, j]))
+  }
+  dictionary = c(dictionary, newword)
+}
+```
+
+***
+
+```{r, echo = FALSE}
+cat(dictionary[1:10], "\n")
+cat(dictionary[11:20], "\n")
+cat(dictionary[21:30], "\n")
+cat(dictionary[31:40], "\n")
+cat(dictionary[41:50], "\n")
+cat(dictionary[51:60], "\n")
+cat(dictionary[61:70], "\n")
+```
+
+Wrapping Up
+========================================================
+
+- `R` and RStudio
+- Theoretical and empirical (simulation-based) probabilities
+- When to use a theoretical vs. empirical approach
+- Questions?
