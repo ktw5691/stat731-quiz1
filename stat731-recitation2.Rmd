@@ -41,7 +41,7 @@ Discrete Distributions: More Coins
 - Is this a valid pmf?
 - What distribution is this?
 
-Simulating the Binomial Distribution
+Visualizing the Binomial Distribution
 ========================================================
 
 - Let's sample from $\mathcal{X}$ ten times
@@ -49,6 +49,24 @@ Simulating the Binomial Distribution
 ```{r, message = FALSE, fig.height = 4.5}
 library(distr)
 outcome = distr::Binom(size = 10, prob = 0.7)
+plot(outcome)
+```
+
+***
+
+- What if $Pr[X = H] = 0.3$?
+
+```{r, fig.height = 4.5}
+outcome = distr::Binom(size = 10, prob = 0.3)
+plot(outcome)
+```
+
+***
+
+- What if $Pr[X = H] = 0.5$?
+
+```{r, fig.height = 4.5}
+outcome = distr::Binom(size = 10, prob = 0.5)
 plot(outcome)
 ```
 
