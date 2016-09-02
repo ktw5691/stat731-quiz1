@@ -1,0 +1,359 @@
+---
+title: "STAT-731 Recitation 2"
+author: "K. Tyler Wilcox"
+date: "September 2, 2016"
+output:
+  beamer_presentation:
+    highlight: zenburn
+    incremental: false
+    theme: "metropolis"
+---
+
+Preliminaries
+========================================================
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+- Install `R` Packages
+    - `distr`
+- Random Variables
+- Computer Simulation, Random Variables, and Sampling
+- Monte Carlo Approximation
+
+Discrete Random Variables: Probability Mass Function
+========================================================
+
+- Probabilities of discrete events from a sample space
+- $X$ is a discrete random variable
+- $f_X(x)$ is a function
+- $f_Xf(x) = Pr[X = x]$ for $x \in \mathcal{X}$ is the
+*probability distribution* or *probability mass function* (pmf) of $X$
+- For both discrete and continuous $X, f_X(x)$ must satisfy:
+    - $f_X(x) = Pr[X = x] \ge 0, \forall x \in \mathcal{X}$
+    $$\sum_{\substack{x \in X}} f_X(x) = \sum_{\substack{x \in X}} Pr[X = x] = 1$$
+
+Discrete Random Variables: Cumulative Distribution Function
+========================================================
+
+- Sums of probabilities of events from a sample space
+- $X$ is a discrete random variable
+$$F_X(x) = Pr[X \le x] = \sum_{\substack{t \le x}} f(t) = \sum_{\substack{t \le x}} Pr[X = t]$$
+- $F_X(x)$ satisfies the following conditions:
+    - $\lim_{x \to -\infty} F_X(x) = 0$
+    - $\lim_{x \to \infty} F_X(x) = 1$
+    - If $a < b$, then $F_X(a) \le F_X(b), a, b \in \Re$
+
+Discrete Distributions: More Coins
+========================================================
+
+- Let's revisit our favorite pastime: coin flips
+- $\mathcal{X} = \{ H, T \}$
+- $Pr[X = H] = 0.7$
+- $Pr[X = T] = 1 - Pr[X = H] = 0.3$
+- Consider the probability mass function:
+$$f_X(x) = {n \choose x} \theta ^ {x} (1 - \theta) ^ {n - x}, x \ge 0, \theta > 0$$
+- Is this a valid pmf?
+- What distribution is this?
+
+Visualizing the Binomial Distribution
+========================================================
+
+- Let's sample from $\mathcal{X}$ ten times
+
+```{r, message = FALSE, fig.height = 4.5}
+library(distr)
+set.seed(922016)
+outcome = distr::Binom(size = 10, prob = 0.7)
+plot(outcome)
+```
+
+***
+
+- What if $Pr[X = H] = 0.3$?
+
+```{r, fig.height = 4.5}
+outcome = distr::Binom(size = 10, prob = 0.3)
+plot(outcome)
+```
+
+***
+
+- What if $Pr[X = H] = 0.5$?
+
+```{r, fig.height = 4.5}
+outcome = distr::Binom(size = 10, prob = 0.5)
+plot(outcome)
+```
+
+Using and Visualizing the Geometric Distribution
+========================================================
+
+- Briefly, let's introduce the geometric distribution
+- Suppose the probability of appearing on air on a radio program is 1/4
+- What is the probability of a caller needing more than five calls to appear on air?
+- Assume that the calls are independent
+
+Using and Visualizing the Geometric Distribution
+========================================================
+
+- Let $X$ be the number of failed attempts before success occurs
+- $\mathcal{X} = \{0, 1, ..., \infty\}$
+- The geometric probability mass function:
+$$f_X(x) = Pr[X = x] = \theta (1 - \theta) ^ x, x \ge 0, \theta > 0$$
+- The geometric cumulative distribution function:
+$$F_X(x) = 1 - (1 - \theta) ^ {k + 1}, x \ge 0, \theta > 0$$
+
+***
+
+- For our example:
+$$Pr[X = \text{on air}] = \theta = 0.25$$
+
+```{r, fig.height = 4.5}
+geom_out = distr::Geom(prob = 0.25)   
+plot(geom_out)
+```
+
+Simulating Geometric Events
+========================================================
+
+- Let's simulate 10,000 independent geometric events with $\theta = 0.25$
+
+```{r}
+n    = 10000
+x    = 1 + rgeom(n, prob = 0.25)
+prob = length(which(x > 5)) / n
+```
+
+- The theoretical probability is `r sprintf("%.4f", 1 - pgeom(q = 4, prob = 0.25))`
+- Empirically, we estimate $Pr[X > 4] = `r sprintf("%.4f", prob)`$
+
+For Fun: Other Geometric Distributions
+========================================================
+
+- Suppose $\theta = 0.1$ 
+
+```{r, fig.height = 4.5}
+geom_out = distr::Geom(prob = 0.1)   
+plot(geom_out)
+```
+
+***
+
+- Suppose $\theta = 0.5$
+
+```{r, fig.height = 4.5}
+geom_out = distr::Geom(prob = 0.5)   
+plot(geom_out)
+```
+
+***
+
+- Suppose $\theta = 0.9$
+
+```{r, fig.height = 4.5}
+geom_out = distr::Geom(prob = 0.9)   
+plot(geom_out)
+```
+
+Continuous Random Variables
+========================================================
+
+- Many of the rules for discrete random variables apply to continuous random variables
+- $X$ is a continuous random variable
+- $f_X(x)$ is a function
+- $f_X(x)$ is a *probability density* or *probability density function* (pdf) of
+$X$ if:
+    - $f_X(x) \ge 0, \forall x \in \mathcal{X}$
+    - $\displaystyle\underset{\substack{x \in \mathcal{X}}}{\int} f_X(x) dx = 1$
+
+Continuous Random Variables: Cumulative Distribution Function
+========================================================
+
+- Sums of probabilities of events from a sample space
+- $X$ is a discrete random variable
+$$F_X(x) = Pr[X \le x] = \displaystyle\int_{-\infty}^{x} f(t) dt$$
+- $F_X(x)$ satisfies the following conditions:
+    - $\displaystyle\underset{x \to -\infty}{\lim} F_X(x) = 0$
+    - $\displaystyle\underset{x \to \infty}{\lim}  F_X(x) = 1$
+    - If $a < b$, then $F_X(a) \le F_X(b), a, b \in \Re$
+    
+Continuous Random Variables: The Fundamental Theorem of Calculus
+========================================================
+
+- Given a pdf $f_X(x)$, cdf $F_X(x)$, and $a, b \in \Re, a \le b$
+$$Pr[a \le X \le b] = \int_{a}^{b} f_X(x) dx = F_X(b) - F_X(a)$$
+- Assuming $\frac{d}{dx} F_X(x)$ exists
+$$f_X(x) = \frac{d}{dx} F_X(x)$$
+- The definitions for a pmf, pdf, and cdf generalize to multivariate cases
+
+Continuous Distribution Example
+========================================================
+
+- Let $f_X(x) = 3x^2, 0 < x < 1$
+- What is the cdf $F_X(x)$?
+- $F_X(x) = x^3, 0 < x < 1$
+- We can plot the pdf $f_X(x)$
+
+```{r}
+fx = function(x) {
+  density = ifelse(test = x > 0 & x < 1,
+                   yes  = 3 * x * x,
+                   no   = 0)
+  return(density)
+}
+```
+
+***
+```{r, fig.height = 6}
+curve(fx, from = 0.01, to = .99,
+      xlim = c(0, 1), main = "PDF")
+```
+
+***
+
+- We can also plot the cdf $F_X(x)$
+
+```{r}
+cdfx = function(x) {
+  density = ifelse(test = x > 0 & x < 1,
+                   yes  = x * x * x,
+                   no   = 0)
+  return(density)
+}
+```
+
+***
+```{r, fig.height = 6}
+curve(cdfx, from = 0.01, to = .99,
+      xlim = c(0, 1), main = "CDF")
+```
+
+***
+
+- What is $Pr[0.2 \le X \le 0.8]$?
+- Using the pdf:
+
+```{r, fig.height = 4.5}
+curve(fx, from = 0.01, to = .99,
+      xlim = c(0, 1), main = "PDF")
+domain = c(0.2, seq(0.2, 0.8, 0.01), 0.8)
+range  = c(0, fx(seq(0.2, 0.8, 0.01)), 0)
+polygon(domain, range)
+```
+
+***
+
+- What is $Pr[0.2 \le X \le 0.8]$?
+- Using the cdf:
+
+```{r, fig.height = 4.5}
+curve(cdfx, from = 0.01, to = .99,
+      xlim = c(0, 1), main = "CDF")
+abline(h = cdfx(0.8))
+abline(h = cdfx(0.2))
+```
+
+***
+
+- What is $Pr[0.2 \le X \le 0.8]$?
+- Integrating the pdf:
+
+```{r}
+integrate(fx, lower = 0.2, upper = 0.8)
+```
+
+- What is $Pr[0.2 \le X \le 0.8]$?
+- Using the cdf:
+
+```{r}
+cdfx(0.8) - cdfx(0.2)
+```
+
+Approximating Probabilities
+========================================================
+
+- Can we approximate integration by simulation?
+- For all of the examples we are dealing with, the cdf always has a closed form
+$$f_X(x) = 3x^2, 0 < x < 1$$
+$$F_X(x) = x^3,  0 < x < 1$$
+- What if it doesn't?
+
+Monte Carlo Approximation
+========================================================
+
+- We can approximate intractable integrals
+- If $X$ is a continuous random variable with pdf $f_X(x)$
+- Then its cdf is
+$$F_X(x) = \displaystyle\int_{a}^{b} f_X(t) dt$$
+- We can approximate this integral:
+    - Draw $X_i \sim U(a, b), i = 1, \ldots, n$
+    - Compute $f_X(x_i)$
+    - Take the average of $f_X(x_i)$ where $a \le x_i \le b$
+    
+Monte Carlo Approximation Example
+========================================================
+
+- Let's consider a simple pdf:
+$$f_XY(x, y) = kxy, 0 < x < 1, 0 < y < 1$$
+- First, we need to find $k$
+- With $k = 4$
+$$f_XY(x, y) = 4xy, 0 < x < 1, 0 < y < 1$$
+
+***
+
+- What is $Pr[X < 0.5]$?
+
+```{r}
+n   = 1000000
+x   = runif(n, 0, 1)
+y   = runif(n, 0, 1)
+fxy = 4 * x * y
+pr1 = sum(fxy[which(x < 0.5)]) / n
+```
+
+- Our empirical estimate of $Pr[X < 0.5] = `r sprintf("%.4f", pr1)`$
+- Theoretically, $Pr[X < 0.5] = 0.25$
+
+***
+
+- What is $Pr[Y > 0.75]$?
+
+```{r}
+pr2 = sum(fxy[which(y > 0.75)]) / n
+```
+
+- Our empirical estimate of $Pr[Y > 0.75] = `r sprintf("%.4f", pr2)`$
+- Theoretically, $Pr[Y > 0.75] = 0.4375$
+
+***
+
+- What is $Pr[X < 0.5, Y > 0.75]$?
+
+```{r}
+pr3 = sum(fxy[which(x < 0.5 & y > 0.75)]) / n
+```
+
+- Our empirical estimate of $Pr[X < 0.5, Y > 0.75] = `r sprintf("%.4f", pr3)`$
+- Theoretically, $Pr[X < 0.5, Y > 0.75] = 0.1094$
+
+***
+
+- What is $Pr[X < 0.5 | Y > 0.75]$?
+
+```{r}
+pr4 = pr3 / pr2
+```
+
+- Our empirical estimate of $Pr[X < 0.5 | Y > 0.75] = `r sprintf("%.4f", pr4)`$
+- Theoretically, $Pr[X < 0.5 | Y > 0.75] = 0.25$
+
+Wrapping Up
+========================================================
+
+- Probability Mass Functions
+- Probability Density Functions
+- Cumulative Distribution Functions
+- Approximation with Monte Carlo
+- Questions?
