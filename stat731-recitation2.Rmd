@@ -5,7 +5,7 @@ date: "September 2, 2016"
 output:
   beamer_presentation:
     highlight: zenburn
-    incremental: true
+    incremental: false
     theme: "metropolis"
 ---
 
@@ -18,17 +18,32 @@ knitr::opts_chunk$set(cache = TRUE)
 
 - Install `R` Packages
     - `distr`
-- Why Use Computer Simulation?
+- Random Variables
+- Computer Simulation, Random Variables, and Sampling
+- Monte Carlo Approximation
 
-Probability Mass Function
+Discrete Random Variables: Probability Mass Function
 ========================================================
 
+- Probabilities of discrete events from a sample space
 - $X$ is a discrete random variable
-- $f(x)$ is a function
-- $f(x) = Pr[X = x]$ for $x \in X$ is the *probability distribution* or *probability mass function* (pmf) of $X$
-- $f(x)$ must satisfy:
-    - $f(x) = Pr[X = x] \ge 0, \forall x \in X$
-    - $\sum_{x \in X} f(x) = \sum_{x \in X} Pr[X = x] = 1$
+- $f_X(x)$ is a function
+- $f_Xf(x) = Pr[X = x]$ for $x \in \mathcal{X}$ is the
+*probability distribution* or *probability mass function* (pmf) of $X$
+- For both discrete and continuous $X, f_X(x)$ must satisfy:
+    - $f_X(x) = Pr[X = x] \ge 0, \forall x \in \mathcal{X}$
+    $$\sum_{\substack{x \in X}} f_X(x) = \sum_{\substack{x \in X}} Pr[X = x] = 1$$
+
+Discrete Random Variables: Cumulative Distribution Function
+========================================================
+
+- Sums of probabilities of events from a sample space
+- $X$ is a discrete random variable
+$$F_X(x) = Pr[X \le x] = \sum_{\substack{t \le x}} f(t) = \sum_{\substack{t \le x}} Pr[X = t]$$
+- $F_X(x)$ satisfies the following conditions:
+    - $\lim_{x \to -\infty} F_X(x) = 0$
+    - $\lim_{x \to \infty} F_X(x) = 1$
+    - If $a < b$, then $F_X(a) \le F_X(b), a, b \in \Re$
 
 Discrete Distributions: More Coins
 ========================================================
@@ -37,7 +52,8 @@ Discrete Distributions: More Coins
 - $\mathcal{X} = \{ H, T \}$
 - $Pr[X = H] = 0.7$
 - $Pr[X = T] = 1 - Pr[X = H] = 0.3$
-- $f(x) = {n \choose x} \theta ^ {x} (1 - \theta) ^ {n - x}, x \ge 0, \theta \ge 0$
+- Consider the probability mass function:
+$$f_X(x) = {n \choose x} \theta ^ {x} (1 - \theta) ^ {n - x}, x \ge 0, \theta > 0$$
 - Is this a valid pmf?
 - What distribution is this?
 
@@ -48,6 +64,7 @@ Visualizing the Binomial Distribution
 
 ```{r, message = FALSE, fig.height = 4.5}
 library(distr)
+set.seed(922016)
 outcome = distr::Binom(size = 10, prob = 0.7)
 plot(outcome)
 ```
@@ -70,414 +87,273 @@ outcome = distr::Binom(size = 10, prob = 0.5)
 plot(outcome)
 ```
 
-Tossing Coins
+Using and Visualizing the Geometric Distribution
 ========================================================
 
-- First, let's write a simple `R` function that flips a coin
-- We will set the number of coin flips with the `nflips` argument
-- We can even make the coin fair or unfair with the `weights` argument
+- Briefly, let's introduce the geometric distribution
+- Suppose the probability of appearing on air on a radio program is 1/4
+- What is the probability of a caller needing more than five calls to appear on air?
+- Assume that the calls are independent
 
+Using and Visualizing the Geometric Distribution
+========================================================
 
-```{r}
-flip_coin = function(nflips = 1,
-                     weights = c(0.5, 0.5)) {
+- Let $X$ be the number of failed attempts before success occurs
+- $\mathcal{X} = \{0, 1, ..., \infty\}$
+- The geometric probability mass function:
+$$f_X(x) = Pr[X = x] = \theta (1 - \theta) ^ x, x \ge 0, \theta > 0$$
+- The geometric cumulative distribution function:
+$$F_X(x) = 1 - (1 - \theta) ^ {k + 1}, x \ge 0, \theta > 0$$
 
-  sequence = sample(x       = c("H", "T"),
-                    size    = nflips,
-                    replace = TRUE,
-                    prob    = weights)
-  return(sequence)
-}
+***
+
+- For our example:
+$$Pr[X = \text{on air}] = \theta = 0.25$$
+
+```{r, fig.height = 4.5}
+geom_out = distr::Geom(prob = 0.25)   
+plot(geom_out)
 ```
 
-Tossing Coins: What Does a Fair Coin Look Like?
+Simulating Geometric Events
 ========================================================
 
-- Let's flip a fair two-sided coin (Heads or Tails) once
-- We will use our `flip_coin` function
-- `set.seed()` ensures that we can rerun the same code and get the same result
-even though we are using a pseudo-random number generator
+- Let's simulate 10,000 independent geometric events with $\theta = 0.25$
 
 ```{r}
-set.seed(333)
-sequence = flip_coin(nflips = 1)
-print(sequence)
+n    = 10000
+x    = 1 + rgeom(n, prob = 0.25)
+prob = length(which(x > 5)) / n
 ```
 
-Tossing Coins: Two Tosses
+- The theoretical probability is `r sprintf("%.4f", 1 - pgeom(q = 4, prob = 0.25))`
+- Empirically, we estimate $Pr[X > 4] = `r sprintf("%.4f", prob)`$
+
+For Fun: Other Geometric Distributions
 ========================================================
 
-- Do we have a fair coin based on what we saw?
-- Let's flip a fair two-sided coin (Heads or Tails) twice
+- Suppose $\theta = 0.1$ 
 
-```{r}
-sequence = flip_coin(nflips = 2)
-print(sequence)
-```
-
-- Is this a fair sequence?
-
-Tossing Coins: Three Tosses
-========================================================
-
-- What about 3 tosses?
-
-```{r}
-sequence = flip_coin(nflips = 3)
-print(sequence)
-```
-
-Tossing Coins: 10,000 Tosses
-========================================================
-- What does 3 tosses look like?
-
-```{r, echo = FALSE}
-library(pacman)
-p_load(ggplot2, scales, dplyr)
-
-ggsequence = sequence %>%
-  data.frame() %>%
-  tbl_df()
-names(ggsequence) = "Outcome"
-
-sequence2 = flip_coin(nflips = 10000) %>%
-  data.frame() %>%
-  tbl_df()
-names(sequence2) = "Outcome"
-
-ggplot(ggsequence) +
-  geom_bar(aes(x = Outcome, y = ..count.. / sum(..count..))) +
-  scale_y_continuous(name = "Relative Frequency", labels = percent,
-                     limits = c(0.0, 1.0)) +
-  ggtitle("Three Tosses") +
-  theme_minimal()
+```{r, fig.height = 4.5}
+geom_out = distr::Geom(prob = 0.1)   
+plot(geom_out)
 ```
 
 ***
 
-- What about 10,000 tosses?
+- Suppose $\theta = 0.5$
 
-```{r, echo = FALSE}
-ggplot(sequence2) +
-  geom_bar(aes(x = Outcome, y = ..count.. / sum(..count..))) +
-  scale_y_continuous(name = "Relative Frequency", labels = percent,
-                     limits = c(0.0, 1.0)) +
-  ggtitle("10,000 Tosses") +
-  theme_minimal()
-```
-
-Tossing Coins: Probability as Relative Frequency
-========================================================
-
-- Effectively, the probability of an event is defined by the relative frequency
-of the event as the number of independent trials approaches infinity
-
-- For our fair coin toss, the probability of "Heads" is:
-$$Pr\left[ H \right] = \lim_{n \to \infty} \frac{1}{n}\sum_{i = 1} ^ n I(H)$$
-
-- Let's use the function `sample()` to compute the probability of seeing "Heads"
-
-`sample()`
-========================================================
-
-- `sample()` is a function that draws a random sample from a sample space
-    - `x`: a vector containing the elements of the sample space
-        - `sample(x = c("H", "T"))`
-    - `size`: a non-negative integer specifying the sample size to draw
-        - `sample(x = c("H", "T"), size = 10)`
-    - `replace`: `TRUE` or `FALSE`; sample with or without replacement
-        - default is `replace = FALSE`
-        - `sample(x = c("H", "T"), size = 10, replace = TRUE)`
-    - `prob`: a vector of probabilities for each element of the sample space `x`
-        - default is `1 / length(x)`
-        - `sample(x = c("H", "T"), size = 10, replace = TRUE, prob = c(0.75, 0.25))`
-
-Tossing Coins: Probability of "Heads" by Simulation
-========================================================
-
-- Let $n$ be very large (approximately infinite)
-- `nheads` will count the number of times a "Heads" is obtained
-
-```{r}
-n = 100000
-nheads = 0
-for (i in seq(1:n)) {
-  nheads = nheads + ifelse(
-    test = sample(x = c("H", "T"))[1] == "H",
-    yes  = 1,
-    no   = 0)
-}
+```{r, fig.height = 4.5}
+geom_out = distr::Geom(prob = 0.5)   
+plot(geom_out)
 ```
 
 ***
 
-- We obtained $`r sprintf("%1.f", nheads)`$ "Heads" out of $`r sprintf("%1.f", n)`$
-tosses of a fair coin
-- Therefore, $Pr\left[H\right] = `r sprintf("%.4f", nheads / n)`$
-- How close are we to the theoretical probability?
+- Suppose $\theta = 0.9$
 
-Tossing Coins: A Rigged Coin
-========================================================
-
-- $Pr[H] = 0.75$
-- $Pr[T] = 1 - Pr[H] = 0.25$
-
-```{r}
-scams = flip_coin(nflips = 40,
-                  weights = c(0.75, 0.25))
-table(scams)
+```{r, fig.height = 4.5}
+geom_out = distr::Geom(prob = 0.9)   
+plot(geom_out)
 ```
 
-- We probably don't have a fair coin when
-`r sprintf("%.2f", (table(scams)[1] / length(scams) * 100))`% of the flips
-landed on "Heads"
-
-Tossing Coins: Probability of Rigged "Heads" by Simulation
+Continuous Random Variables
 ========================================================
 
-- Let $n$ be very large (approximately infinite)
-- `nheads` will count the number of times a "Heads" is obtained
+- Many of the rules for discrete random variables apply to continuous random variables
+- $X$ is a continuous random variable
+- $f_X(x)$ is a function
+- $f_X(x)$ is a *probability density* or *probability density function* (pdf) of
+$X$ if:
+    - $f_X(x) \ge 0, \forall x \in \mathcal{X}$
+    - $\displaystyle\underset{\substack{x \in \mathcal{X}}}{\int} f_X(x) dx = 1$
+
+Continuous Random Variables: Cumulative Distribution Function
+========================================================
+
+- Sums of probabilities of events from a sample space
+- $X$ is a discrete random variable
+$$F_X(x) = Pr[X \le x] = \displaystyle\int_{-\infty}^{x} f(t) dt$$
+- $F_X(x)$ satisfies the following conditions:
+    - $\displaystyle\underset{x \to -\infty}{\lim} F_X(x) = 0$
+    - $\displaystyle\underset{x \to \infty}{\lim}  F_X(x) = 1$
+    - If $a < b$, then $F_X(a) \le F_X(b), a, b \in \Re$
+    
+Continuous Random Variables: The Fundamental Theorem of Calculus
+========================================================
+
+- Given a pdf $f_X(x)$, cdf $F_X(x)$, and $a, b \in \Re, a \le b$
+$$Pr[a \le X \le b] = \int_{a}^{b} f_X(x) dx = F_X(b) - F_X(a)$$
+- Assuming $\frac{d}{dx} F_X(x)$ exists
+$$f_X(x) = \frac{d}{dx} F_X(x)$$
+- The definitions for a pmf, pdf, and cdf generalize to multivariate cases
+
+Continuous Distribution Example
+========================================================
+
+- Let $f_X(x) = 3x^2, 0 < x < 1$
+- What is the cdf $F_X(x)$?
+- $F_X(x) = x^3, 0 < x < 1$
+- We can plot the pdf $f_X(x)$
 
 ```{r}
-n = 100000
-nheads = 0
-for (i in seq(1:n)) {
-  nheads = nheads + ifelse(
-    test = sample(x = c("H", "T"),
-                  prob = c(0.75, 0.25))[1] == "H",
-    yes  = 1,
-    no   = 0)
+fx = function(x) {
+  density = ifelse(test = x > 0 & x < 1,
+                   yes  = 3 * x * x,
+                   no   = 0)
+  return(density)
 }
 ```
 
 ***
-
-- We obtained $`r sprintf("%1.f", nheads)`$ "Heads" out of $`r sprintf("%1.f", n)`$ tosses of a fair coin
-- Therefore, $Pr\left[H\right] = `r sprintf("%.4f", nheads / n)`$
-- How close are we to the theoretical probability?
-
-Rolling Dice
-========================================================
-
-- We spent a good amount of time simulating binomial events
-- Can we simulate probabilities for larger spaces?
-
-***
-
-- Let's roll two 6-sided fair dice:
-$$\mathcal{S} = \{1, 2, 3, 4, 5, 6\} \times \{1, 2, 3, 4, 5, 6\}$$
-- What is the probability of rolling the same number on both dice?
-
-```{r}
-n = 10000
-outcome = 0
-for (i in seq(1:n)) {
-  outcome = outcome + ifelse(
-    test = sample(x = 1:6)[1] == sample(x = 1:6)[1],
-    yes = 1,
-    no = 0)
-}
+```{r, fig.height = 6}
+curve(fx, from = 0.01, to = .99,
+      xlim = c(0, 1), main = "PDF")
 ```
 
 ***
 
-- We empirically obtain $`r sprintf("%1.f", outcome)`$ out of
-$`r sprintf("%1.f", n)`$ rolls
-- Our empirical estimate of $Pr[f_1 = f_2] = `r sprintf("%.4f", outcome / n)`$
-- How does this compare to our theoretical expectation?
-
-Empirical Exploration of an Arbitrary Sample Space
-========================================================
-
-- Let $\mathcal{S} = \{-2, 0, 1, 3\}$
-- $Pr[X = -2] = Pr[X = 0] = Pr[X = 1] = Pr[X = 3] = 0.25$
-- What is the size (cardinality) of $\mathcal{S}$?
-- Let's compute $Pr[X = -2]$ empirically using relative frequencies
+- We can also plot the cdf $F_X(x)$
 
 ```{r}
-n = 10000
-outcome = 0
-for (i in seq(1:n)) {
-  outcome = outcome + ifelse(
-    test = sample(x = c(-2, 0, 1, 3),
-                  size = 1, replace = TRUE) == -2,
-    yes = 1,
-    no = 0)
+cdfx = function(x) {
+  density = ifelse(test = x > 0 & x < 1,
+                   yes  = x * x * x,
+                   no   = 0)
+  return(density)
 }
 ```
 
 ***
-
-- We observed $`r sprintf("%1.f", outcome)`$ events where $X = -2$ out of
-$`r sprintf("%1.f", n)`$ samples
-- Our empirical estimate of $Pr[X = -2] = `r sprintf("%.4f", outcome / n)`$
-- How does this compare to our theoretical expectation?
-
-Empirical Exploration of an Arbitrary Sample Space
-========================================================
-
-- Let $\mathcal{S} = \{-2, 0, 1, 3\}$
-- $Pr[X = -2] = Pr[X = 0] = Pr[X = 1] = Pr[X = 3] = 0.25$
-- What is the probability that X is non-negative?
-
-```{r}
-set.seed(333)
-n = 10000
-outcome = 0
-for (i in seq(1:n)) {
-  outcome = outcome + ifelse(
-    test = sample(x = c(-2, 0, 1, 3),
-                  size = 1, replace = TRUE) >= 0,
-    yes = 1,
-    no = 0)
-}
+```{r, fig.height = 6}
+curve(cdfx, from = 0.01, to = .99,
+      xlim = c(0, 1), main = "CDF")
 ```
 
 ***
 
-- We observed $`r sprintf("%1.f", outcome)`$ events where $X \ge 0$ out of
-$`r sprintf("%1.f", n)`$ samples
-- Our empirical estimate of $Pr[X \ge 0] = `r sprintf("%.4f", outcome / n)`$
-- How does this compare to our theoretical expectation?
+- What is $Pr[0.2 \le X \le 0.8]$?
+- Using the pdf:
 
-A Programming Optimization Aside
-========================================================
-
-- It is worth mentioning that `for()` loops are highly inefficient in `R`
-- Let's redo the last example and replace the `for()` loop with one vectorized
-line of code
-
-```{r}
-n = 10000
-set.seed(333)
-outcome2 = length(which(sample(x = c(-2, 0 , 1, 3),
-                  size = n, replace = TRUE) >= 0))
-all.equal(outcome, outcome2)
-```
-
-- In general, vectorization will be preferable when possible in `R`
-
-Combinatorics in `R`
-========================================================
-
-- Consider an alphabet:
-$$A = \{ a, b, c, d, e \}$$
-- Suppose that for this alphabet, only words of length 2, 3, 4, and 5 are valid
-- Further, suppose that letters can appear more than once per word
-- Finally, suppose that the order of letters is irrelevant (i.e., "ab" = "ba")
-
-Alphabet A: How Many Two Letter Words Are There?
-========================================================
-
-```{r, message = FALSE}
-library(prob)
-
-A = c('a', 'b', 'c', 'd', 'e')
-n2words = prob::nsamp(n = length(A), k = 2,
-                      replace = TRUE, ordered = FALSE)
-```
-
-- We have `r sprintf("%1.f", n2words)` two-letter words
-
-Alphabet A: How Many Three Letter Words Are There?
-========================================================
-
-```{r}
-A = c('a', 'b', 'c', 'd', 'e')
-n3words = prob::nsamp(n = length(A), k = 3,
-                      replace = TRUE, ordered = FALSE)
-```
-
-- We have `r sprintf("%1.f", n3words)` possible three-letter words
-
-Alphabet A: How Many Four Letter Words Are There?
-========================================================
-
-```{r}
-A = c('a', 'b', 'c', 'd', 'e')
-n4words = prob::nsamp(n = length(A), k = 4,
-                      replace = TRUE, ordered = FALSE)
-```
-
-- We have `r sprintf("%1.f", n4words)` four-letter words
-
-Alphabet A: Two-Letter Words in the Language?
-========================================================
-
-```{r}
-dictionary = NULL
-w2 = urnsamples(x = A, size = 2,
-                replace = TRUE, ordered = FALSE)
-for (i in seq(1:nrow(w2))) {
-  newword = ''
-  for (j in seq(1:2)) {
-    newword = paste0(newword, as.character(w2[i, j]))
-  }
-  dictionary = c(dictionary, newword)
-}
-```
-
-```{r, echo = FALSE}
-cat(dictionary)
-```
-
-Alphabet A: Three-Letter Words in the Language?
-========================================================
-
-```{r}
-dictionary = NULL
-w3 = urnsamples(x = A, size = 3,
-                replace = TRUE, ordered = FALSE)
-for (i in seq(1:nrow(w2))) {
-  newword = ''
-  for (j in seq(1:3)) {
-    newword = paste0(newword, as.character(w2[i, j]))
-  }
-  dictionary = c(dictionary, newword)
-}
+```{r, fig.height = 4.5}
+curve(fx, from = 0.01, to = .99,
+      xlim = c(0, 1), main = "PDF")
+domain = c(0.2, seq(0.2, 0.8, 0.01), 0.8)
+range  = c(0, fx(seq(0.2, 0.8, 0.01)), 0)
+polygon(domain, range)
 ```
 
 ***
 
-```{r, echo = FALSE}
-cat(dictionary[1:10], "\n")
-cat(dictionary[11:20], "\n")
-cat(dictionary[21:30], "\n")
-cat(dictionary[31:35], "\n")
-```
+- What is $Pr[0.2 \le X \le 0.8]$?
+- Using the cdf:
 
-Alphabet A: Four-Letter Words in the Language?
-========================================================
-
-```{r}
-dictionary = NULL
-w4 = urnsamples(x = A, size = 4,
-                replace = TRUE, ordered = FALSE)
-for (i in seq(1:nrow(w2))) {
-  newword = ''
-  for (j in seq(1:4)) {
-    newword = paste0(newword, as.character(w2[i, j]))
-  }
-  dictionary = c(dictionary, newword)
-}
+```{r, fig.height = 4.5}
+curve(cdfx, from = 0.01, to = .99,
+      xlim = c(0, 1), main = "CDF")
+abline(h = cdfx(0.8))
+abline(h = cdfx(0.2))
 ```
 
 ***
 
-```{r, echo = FALSE}
-cat(dictionary[1:10], "\n")
-cat(dictionary[11:20], "\n")
-cat(dictionary[21:30], "\n")
-cat(dictionary[31:40], "\n")
-cat(dictionary[41:50], "\n")
-cat(dictionary[51:60], "\n")
-cat(dictionary[61:70], "\n")
+- What is $Pr[0.2 \le X \le 0.8]$?
+- Integrating the pdf:
+
+```{r}
+integrate(fx, lower = 0.2, upper = 0.8)
 ```
+
+- What is $Pr[0.2 \le X \le 0.8]$?
+- Using the cdf:
+
+```{r}
+cdfx(0.8) - cdfx(0.2)
+```
+
+Approximating Probabilities
+========================================================
+
+- Can we approximate integration by simulation?
+- For all of the examples we are dealing with, the cdf always has a closed form
+$$f_X(x) = 3x^2, 0 < x < 1$$
+$$F_X(x) = x^3,  0 < x < 1$$
+- What if it doesn't?
+
+Monte Carlo Approximation
+========================================================
+
+- We can approximate intractable integrals
+- If $X$ is a continuous random variable with pdf $f_X(x)$
+- Then its cdf is
+$$F_X(x) = \displaystyle\int_{a}^{b} f_X(t) dt$$
+- We can approximate this integral:
+    - Draw $X_i \sim U(a, b), i = 1, \ldots, n$
+    - Compute $f_X(x_i)$
+    - Take the average of $f_X(x_i)$ where $a \le x_i \le b$
+    
+Monte Carlo Approximation Example
+========================================================
+
+- Let's consider a simple pdf:
+$$f_XY(x, y) = kxy, 0 < x < 1, 0 < y < 1$$
+- First, we need to find $k$
+- With $k = 4$
+$$f_XY(x, y) = 4xy, 0 < x < 1, 0 < y < 1$$
+
+***
+
+- What is $Pr[X < 0.5]$?
+
+```{r}
+n   = 1000000
+x   = runif(n, 0, 1)
+y   = runif(n, 0, 1)
+fxy = 4 * x * y
+pr1 = sum(fxy[which(x < 0.5)]) / n
+```
+
+- Our empirical estimate of $Pr[X < 0.5] = `r sprintf("%.4f", pr1)`$
+- Theoretically, $Pr[X < 0.5] = 0.25$
+
+***
+
+- What is $Pr[Y > 0.75]$?
+
+```{r}
+pr2 = sum(fxy[which(y > 0.75)]) / n
+```
+
+- Our empirical estimate of $Pr[Y > 0.75] = `r sprintf("%.4f", pr2)`$
+- Theoretically, $Pr[Y > 0.75] = 0.4375$
+
+***
+
+- What is $Pr[X < 0.5, Y > 0.75]$?
+
+```{r}
+pr3 = sum(fxy[which(x < 0.5 & y > 0.75)]) / n
+```
+
+- Our empirical estimate of $Pr[X < 0.5, Y > 0.75] = `r sprintf("%.4f", pr3)`$
+- Theoretically, $Pr[X < 0.5, Y > 0.75] = 0.1094$
+
+***
+
+- What is $Pr[X < 0.5 | Y > 0.75]$?
+
+```{r}
+pr4 = pr3 / pr2
+```
+
+- Our empirical estimate of $Pr[X < 0.5 | Y > 0.75] = `r sprintf("%.4f", pr4)`$
+- Theoretically, $Pr[X < 0.5 | Y > 0.75] = 0.25$
 
 Wrapping Up
 ========================================================
 
-- `R` and RStudio
-- Theoretical and empirical (simulation-based) probabilities
-- When to use a theoretical vs. empirical approach
+- Probability Mass Functions
+- Probability Density Functions
+- Cumulative Distribution Functions
+- Approximation with Monte Carlo
 - Questions?
