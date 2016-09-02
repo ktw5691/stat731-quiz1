@@ -28,7 +28,7 @@ Discrete Random Variables: Probability Mass Function
 - Probabilities of discrete events from a sample space
 - $X$ is a discrete random variable
 - $f_X(x)$ is a function
-- $f_Xf(x) = Pr[X = x]$ for $x \in \mathcal{X}$ is the
+- $f_X(x) = Pr[X = x]$ for $x \in \mathcal{X}$ is the
 *probability distribution* or *probability mass function* (pmf) of $X$
 - For both discrete and continuous $X, f_X(x)$ must satisfy:
     - $f_X(x) = Pr[X = x] \ge 0, \forall x \in \mathcal{X}$
@@ -296,10 +296,10 @@ Monte Carlo Approximation Example
 ========================================================
 
 - Let's consider a simple pdf:
-$$f_XY(x, y) = kxy, 0 < x < 1, 0 < y < 1$$
+$$f_{XY}(x, y) = kxy, 0 < x < 1, 0 < y < 1$$
 - First, we need to find $k$
 - With $k = 4$
-$$f_XY(x, y) = 4xy, 0 < x < 1, 0 < y < 1$$
+$$f_{XY}(x, y) = 4xy, 0 < x < 1, 0 < y < 1$$
 
 ***
 
